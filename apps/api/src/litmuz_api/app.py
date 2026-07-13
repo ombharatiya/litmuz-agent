@@ -16,7 +16,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from litmuz_core.config import Config
+from litmuz_core.config import Config, VerificationMode
 from litmuz_core.report.assembler import human_readable
 from litmuz_service import EmptyMemo, Queue, QuotaExceeded, SubmissionTooLarge, submit, usage_for
 from litmuz_store import (
@@ -58,6 +58,7 @@ class ApiContext:
 
 class SubmitBody(BaseModel):
     text: str
+    mode: str = "literature"
 
 
 class ReviewBody(BaseModel):
@@ -112,6 +113,10 @@ def create_app(ctx: ApiContext) -> FastAPI:
     def create_verification(
         body: SubmitBody, request: Request, who: str = Depends(principal)
     ) -> dict:
+        try:
+            mode = VerificationMode(body.mode)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"unknown mode: {body.mode}") from None
         with ctx.app_conn_factory() as conn:
             try:
                 job_id = submit(
@@ -121,6 +126,7 @@ def create_app(ctx: ApiContext) -> FastAPI:
                     queue=ctx.queue,
                     config=ctx.config,
                     tier=_tier(request),
+                    mode=mode,
                 )
             except SubmissionTooLarge as exc:
                 raise HTTPException(status_code=413, detail=str(exc)) from None
@@ -162,6 +168,7 @@ def create_app(ctx: ApiContext) -> FastAPI:
                 # its report, so an older session is not an empty composer.
                 "memo": job.get("memo", ""),
                 "title": job.get("title", "") or "",
+                "mode": job.get("mode", "literature"),
             }
 
     @app.get("/reports/{report_id}")

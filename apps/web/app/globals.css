@@ -1260,6 +1260,106 @@ textarea:focus {
   padding: 0.5rem 0.7rem;
 }
 
+/* ---- Verification criteria selector ---- */
+/* A two-option segmented control that mirrors the review-decision pills: emerald accent, rounded,
+   hairline borders, with a sub-label under each mode. It sits above the memo field. */
+.mode-field {
+  margin-top: 1.25rem;
+}
+
+.mode-field .field-label {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.mode-select {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mode-option {
+  flex: 1 1 12rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  text-align: left;
+  background: hsl(var(--bg));
+  border: 1px solid hsl(var(--rule));
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+  color: hsl(var(--ink-soft));
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    color 0.12s ease;
+}
+
+.mode-option:hover:not(:disabled) {
+  border-color: hsl(var(--accent) / 0.5);
+  color: hsl(var(--ink));
+}
+
+.mode-option:focus-visible {
+  outline: none;
+  border-color: hsl(var(--accent));
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.15);
+}
+
+.mode-option-active {
+  border-color: hsl(var(--accent));
+  background: hsl(var(--accent-soft));
+  color: hsl(var(--accent));
+  box-shadow: 0 0 0 1px hsl(var(--accent) / 0.35);
+}
+
+.mode-option-active:hover:not(:disabled) {
+  color: hsl(var(--accent));
+}
+
+.mode-option:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.mode-option-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.mode-option-sub {
+  font-size: 0.76rem;
+  color: hsl(var(--ink-mute));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.mode-option-active .mode-option-sub {
+  color: hsl(var(--accent) / 0.75);
+}
+
+/* Canvas header: label + mode badge grouped on the left, close on the right. */
+.canvas-head-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mode-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  color: hsl(var(--accent));
+  background: hsl(var(--accent-soft));
+  border: 1px solid hsl(var(--accent) / 0.25);
+}
+
 /* Studio stacks on narrow screens: the canvas becomes a full-width overlay. */
 @media (max-width: 60rem) {
   .studio-rail {

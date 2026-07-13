@@ -26,11 +26,12 @@ def _v(enum_or_none) -> str | None:
     return enum_or_none.value if enum_or_none is not None else None
 
 
-def create_job(conn, *, user_sub: str, memo: str = "") -> str:
+def create_job(conn, *, user_sub: str, memo: str = "", mode: str = "literature") -> str:
     with conn.cursor() as cur:
         cur.execute(
-            "INSERT INTO jobs (user_sub, status, memo) VALUES (%s, 'queued', %s) RETURNING job_id",
-            (user_sub, memo),
+            "INSERT INTO jobs (user_sub, status, memo, mode) VALUES (%s, 'queued', %s, %s) "
+            "RETURNING job_id",
+            (user_sub, memo, mode),
         )
         job_id = str(cur.fetchone()[0])
     conn.commit()
@@ -62,7 +63,7 @@ def list_jobs(conn, user_sub: str, limit: int = 50) -> list[dict]:
     list is identifiable; the client shows the title and falls back to the snippet."""
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
-            "SELECT job_id, status, stage, report_id, created_at, title, memo FROM jobs "
+            "SELECT job_id, status, stage, report_id, created_at, title, memo, mode FROM jobs "
             "WHERE user_sub = %s ORDER BY created_at DESC LIMIT %s",
             (user_sub, limit),
         )
@@ -76,6 +77,7 @@ def list_jobs(conn, user_sub: str, limit: int = 50) -> list[dict]:
             "created_at": row["created_at"].isoformat(),
             "title": row["title"] or "",
             "memo_snippet": _memo_snippet(row["memo"]),
+            "mode": row["mode"],
         }
         for row in rows
     ]
@@ -99,17 +101,27 @@ def _memo_snippet(memo: str | None, limit: int = 80) -> str:
     return single_line[:limit]
 
 
-def claim_job(conn, job_id: str) -> bool:
-    """Atomically move a queued or failed job to running. Returns True if this caller won it.
+def claim_job(conn, job_id: str, *, stale_running_timeout_s: int = 600) -> bool:
+    """Atomically move a queued, failed, or stale-running job to running. Returns True if
+    this caller won it.
 
     At-least-once delivery means the same job may arrive twice; only one caller claims it, so
     a redelivered or concurrent message never produces a duplicate report (AC-JOB-3/AC-JOB-5).
+
+    A 'running' row whose updated_at is older than stale_running_timeout_s is presumed
+    orphaned by a worker that died mid-run (deploy restart, OOM, task eviction) rather than
+    still in progress, and is reclaimed exactly like a failed job. Without this, a job a dead
+    worker claimed would stay at 'running' forever: no future redelivery could ever reclaim
+    it, since 'running' was the one status claim_job never matched.
     """
     with conn.cursor() as cur:
         cur.execute(
             "UPDATE jobs SET status = 'running', updated_at = now() "
-            "WHERE job_id = %s AND status IN ('queued', 'failed') RETURNING job_id",
-            (job_id,),
+            "WHERE job_id = %s AND ("
+            "  status IN ('queued', 'failed') "
+            "  OR (status = 'running' AND updated_at < now() - (%s * interval '1 second'))"
+            ") RETURNING job_id",
+            (job_id, stale_running_timeout_s),
         )
         claimed = cur.fetchone() is not None
     conn.commit()
@@ -144,12 +156,18 @@ def persist_report(conn, report: Report, *, user_sub: str) -> Report:
     the report's in-memory ids are placeholders and are not used. Returns the stored report
     read back through :func:`read_report`, so the return value is exactly what a later read
     yields.
+
+    Idempotent per job: if a report for this job already exists (the stale-running reclaim in
+    claim_job can briefly overlap a still-live worker), the unique index on reports.job_id
+    turns this write into a no-op and the existing report is returned unchanged, so an overlap
+    never produces a duplicate report or re-flips the job's status (AC-JOB-5).
     """
     with conn.cursor() as cur:
         cur.execute(
             "INSERT INTO reports (job_id, user_sub, memo_hash, model_versions, "
             "rubric_version, summary_counts, unclaimed_spans) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING report_id",
+            "VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT (job_id) DO NOTHING "
+            "RETURNING report_id",
             (
                 report.job_id,
                 user_sub,
@@ -160,7 +178,15 @@ def persist_report(conn, report: Report, *, user_sub: str) -> Report:
                 Jsonb([span.model_dump() for span in report.unclaimed_spans]),
             ),
         )
-        report_id = str(cur.fetchone()[0])
+        row = cur.fetchone()
+        if row is None:
+            # Another worker already persisted this job's report. Return it as-is; do not write
+            # claims or touch job status a second time.
+            cur.execute("SELECT report_id FROM reports WHERE job_id = %s", (report.job_id,))
+            existing_report_id = str(cur.fetchone()[0])
+            conn.rollback()
+            return read_report(conn, existing_report_id)
+        report_id = str(row[0])
 
         for claim in report.claims:
             cur.execute(

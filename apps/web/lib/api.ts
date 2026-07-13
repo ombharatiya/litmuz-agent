@@ -1,4 +1,4 @@
-import type { JobStatus, MyJob, QueueItem, Report, ReviewLabel } from './types';
+import type { JobStatus, MyJob, QueueItem, Report, ReviewLabel, VerificationMode } from './types';
 
 import { authHeaders } from './auth';
 
@@ -47,8 +47,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
-export const submitVerification = (text: string) =>
-  request<{ job_id: string }>('/verifications', { method: 'POST', body: JSON.stringify({ text }) });
+export const submitVerification = (text: string, mode: VerificationMode = 'literature') =>
+  request<{ job_id: string }>('/verifications', {
+    method: 'POST',
+    body: JSON.stringify({ text, mode }),
+  });
 
 export const getJobStatus = (jobId: string) => request<JobStatus>(`/verifications/${jobId}`);
 

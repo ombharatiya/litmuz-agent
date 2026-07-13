@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from litmuz_core.config import Config
+from litmuz_core.config import Config, VerificationMode
 from litmuz_core.pipeline import run_pipeline
 from litmuz_core.title import generate_title
 from litmuz_store import (
@@ -91,6 +91,7 @@ def submit(
     config: Config | None = None,
     tier: str | None = None,
     now: datetime | None = None,
+    mode: VerificationMode = VerificationMode.LITERATURE,
 ) -> str:
     """Validate, enforce the weekly quota, create the job, enqueue it, and return the job id.
 
@@ -109,7 +110,7 @@ def submit(
         usage = usage_for(app_conn, user_sub=user_sub, tier=tier, config=config, now=now)
         if usage["used"] >= usage["limit"]:
             raise QuotaExceeded(usage)
-    job_id = create_job(app_conn, user_sub=user_sub, memo=memo)
+    job_id = create_job(app_conn, user_sub=user_sub, memo=memo, mode=mode.value)
     queue.enqueue(job_id)
     return job_id
 
@@ -134,7 +135,7 @@ def run_job(
         raise KeyError(f"unknown job {job_id}")
     if job["status"] == "completed" and job["report_id"] is not None:
         return str(job["report_id"])
-    if not claim_job(app_conn, job_id):
+    if not claim_job(app_conn, job_id, stale_running_timeout_s=config.stale_running_timeout_s):
         current = get_job(app_conn, job_id)
         if current and current["status"] == "completed" and current["report_id"] is not None:
             return str(current["report_id"])
@@ -159,6 +160,7 @@ def run_job(
             config=config,
             job_id=str(job_id),
             on_progress=progress,
+            mode=VerificationMode(job.get("mode") or "literature"),
         )
         persisted = persist_report(app_conn, report, user_sub=job["user_sub"])
         return persisted.id

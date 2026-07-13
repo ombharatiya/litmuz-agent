@@ -9,7 +9,7 @@ import { ReportPanel } from '@/components/ReportPanel';
 import { SessionsPanel } from '@/components/SessionsPanel';
 import { UpgradeModal } from '@/components/UpgradeModal';
 import { ApiError, getJobStatus, getUsage, submitVerification, type Usage } from '@/lib/api';
-import type { MyJob } from '@/lib/types';
+import type { MyJob, VerificationMode } from '@/lib/types';
 
 const MAX_BYTES = 51200;
 
@@ -21,11 +21,23 @@ References
 1. Smith J, Doe A. A TP53 study in carcinoma. Nature. 2020. PMID: 12345.
 2. Ghost Author. A nonexistent work. 2099. PMID: 99999999.`;
 
+const GENOMIC_EXAMPLE = `HAR1 is a Human Accelerated Region that evolved rapidly in the human lineage and is expressed during cortical development [1].
+The region chr7:250,000-251,000 is a well-characterized Human Accelerated Region under strong purifying selection across mammals [2].
+The HACNS1 enhancer shows no human-specific changes and is identical across primates [3].
+
+References
+1. Pollard KS, et al. An RNA gene expressed during cortical development evolved rapidly in humans. Nature. 2006. PMID: 16915236.
+2. Ghost Author. A fabricated conservation study. 2099. PMID: 99999999.
+3. Test T. HACNS1 enhancer study. 2020. PMID: 34567890.`;
+
 export default function Studio() {
   const { status, canAct, requestSignIn } = useAuth();
   const queryClient = useQueryClient();
 
   const [text, setText] = useState('');
+  // What the memo is verified against. Drives the composer example and the POST body; for a past
+  // session it reflects the mode that run used so the canvas badge is accurate.
+  const [mode, setMode] = useState<VerificationMode>('literature');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [overQuota, setOverQuota] = useState<Usage | null>(null);
@@ -83,7 +95,7 @@ export default function Studio() {
     setError(null);
     setBusy(true);
     try {
-      const { job_id } = await submitVerification(text);
+      const { job_id } = await submitVerification(text, mode);
       setPastSession(null);
       setJobId(job_id);
       setReportId(null);
@@ -117,11 +129,13 @@ export default function Studio() {
     setReportId(job.report_id);
     setCanvasOpen(true);
     setText(job.title || job.memo_snippet || '');
+    if (job.mode) setMode(job.mode);
     // Load the full memo so the composer shows the exact input behind this report.
     void (async () => {
       try {
         const detail = await getJobStatus(job.job_id);
         if (detail.memo !== undefined) setText(detail.memo);
+        if (detail.mode) setMode(detail.mode);
       } catch {
         // Keep the snippet if the detail read fails; the report is still shown.
       }
@@ -130,6 +144,7 @@ export default function Studio() {
 
   function onNew() {
     setText('');
+    setMode('literature');
     setPastSession(null);
     setJobId(null);
     setReportId(null);
@@ -197,6 +212,36 @@ export default function Studio() {
           </>
         )}
 
+        <div className="field mode-field">
+          <span className="field-label" id="mode-label">
+            Verification criteria
+          </span>
+          <div className="mode-select" role="radiogroup" aria-labelledby="mode-label">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={mode === 'literature'}
+              className={`mode-option ${mode === 'literature' ? 'mode-option-active' : ''}`}
+              onClick={() => setMode('literature')}
+              disabled={locked}
+            >
+              <span className="mode-option-label">Literature</span>
+              <span className="mode-option-sub">PubMed / PMC / Crossref</span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={mode === 'genomic'}
+              className={`mode-option ${mode === 'genomic' ? 'mode-option-active' : ''}`}
+              onClick={() => setMode('genomic')}
+              disabled={locked}
+            >
+              <span className="mode-option-label">Genomic evidence</span>
+              <span className="mode-option-sub">Gladstone: HAR / Zoonomia</span>
+            </button>
+          </div>
+        </div>
+
         <div className="field">
           <div className="field-head">
             <label className="field-label" htmlFor="memo-input">
@@ -206,7 +251,7 @@ export default function Studio() {
               <button
                 type="button"
                 className="auth-link"
-                onClick={() => setText(EXAMPLE)}
+                onClick={() => setText(mode === 'genomic' ? GENOMIC_EXAMPLE : EXAMPLE)}
                 disabled={inFlight}
               >
                 Load an example
@@ -302,7 +347,12 @@ export default function Studio() {
           />
           <section className="studio-canvas" style={{ width: `${canvasWidth}px` }}>
             <header className="canvas-head">
-              <span className="canvas-label">Verification</span>
+              <div className="canvas-head-left">
+                <span className="canvas-label">Verification</span>
+                <span className={`mode-badge mode-badge-${mode}`}>
+                  {mode === 'genomic' ? 'Genomic' : 'Literature'}
+                </span>
+              </div>
               <button
                 className="canvas-close"
                 aria-label="Collapse canvas"

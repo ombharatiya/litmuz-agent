@@ -3,6 +3,10 @@
 export type TrafficLight = 'green' | 'yellow' | 'red';
 export type JobStatusValue = 'queued' | 'running' | 'completed' | 'failed';
 
+// What a verification checks a memo's claims against. Literature is the default (PubMed/PMC/
+// Crossref); genomic checks genomic claims against the Gladstone datasets (HAR + Zoonomia).
+export type VerificationMode = 'literature' | 'genomic';
+
 export interface Verdict {
   label: string;
   confidence: number | null;
@@ -90,6 +94,7 @@ export interface JobStatus {
   // Present on the job-detail read so a past session can show its input beside the report.
   memo?: string;
   title?: string;
+  mode?: VerificationMode;
 }
 
 export interface MyJob {
@@ -100,6 +105,7 @@ export interface MyJob {
   created_at: string;
   title: string;
   memo_snippet: string;
+  mode?: VerificationMode;
 }
 
 export interface QueueItem {

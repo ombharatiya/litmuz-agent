@@ -59,6 +59,19 @@ class TrafficLight(str, Enum):
     RED = "red"
 
 
+class VerificationMode(str, Enum):
+    """What a memo's claims are verified against.
+
+    LITERATURE is the default pipeline (deterministic citation checks against the primary
+    literature, then evidence retrieval and entailment judging). GENOMIC checks genomic claims
+    against a curated Gladstone reference (Human Accelerated Regions + Zoonomia constraint),
+    deterministically and without an LLM judge.
+    """
+
+    LITERATURE = "literature"
+    GENOMIC = "genomic"
+
+
 class Category(str, Enum):
     CITATION = "citation"
     MECHANISTIC = "mechanistic"
@@ -104,6 +117,13 @@ class Config:
     ncbi_api_key: str | None = None
     retrieval_max_retries: int = 4
     retrieval_base_delay_s: float = 0.5
+    # A 'running' job whose updated_at is older than this is presumed orphaned by a dead worker
+    # (deploy restart, OOM, task eviction) and becomes reclaimable, like a failed job. Set under
+    # the SQS visibility timeout (900s) so a dead job's first redelivery can already reclaim it.
+    # update_job_progress refreshes updated_at between claims, but a single slow claim can still
+    # age past this while its worker is alive; persist_report is idempotent per job so that such
+    # an overlap cannot write a duplicate report (AC-JOB-5).
+    stale_running_timeout_s: int = 600
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> Config:

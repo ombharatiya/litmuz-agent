@@ -9,19 +9,26 @@ fabricated citation or no usable passage never reaches the model (AC-JUDGE-4, AC
 from __future__ import annotations
 
 import hashlib
+import re
 from collections.abc import Callable
 
 from .categorize.categorizer import categorize
 from .cite.checker import ResolutionCache, check_citation
 from .cite.identifiers import extract_identifiers
-from .config import Config, ResolutionStatus, RetrievalMode
+from .config import Category, Config, ResolutionStatus, RetrievalMode, VerificationMode
 from .decompose.decomposer import decompose
-from .decompose.references import ResolvedCitation, build_reference_index, resolve_citations
+from .decompose.references import (
+    ResolvedCitation,
+    build_reference_index,
+    resolve_citations,
+    split_reference_section,
+)
+from .genomic import check_genomic_claim
 from .judge.judge import judge_claim
 from .llm import LlmClient
 from .report.assembler import assemble_report
 from .retrieve.retriever import RetrievalError, retrieve_for_claim
-from .schemas import CitedId, Claim, ClaimAttribution, Evidence, Report, SourceSpan
+from .schemas import CitedId, Claim, ClaimAttribution, Evidence, Report, SourceSpan, Verdict
 from .severity.mapping import score_claim
 
 ProgressFn = Callable[[str, int, int], None]
@@ -100,6 +107,47 @@ def _process_claim(
     )
 
 
+def _process_genomic_claim(claim: Claim, *, config: Config) -> Claim:
+    """Score one claim against the genomic reference (Human Accelerated Regions + Zoonomia).
+
+    Deterministic: no citation registries, no retrieval, no judge. The genomic check yields a
+    verdict and evidence, which the shared severity mapping (score_claim) turns into a diagnostic,
+    traffic light, and routing exactly as in the literature path - so the safety gate and the
+    honest-negative guarantees still hold (an unverifiable claim is a yellow, never a green).
+    """
+    result = check_genomic_claim(claim.text)
+    verdict = (
+        Verdict(label=result.label, confidence=result.confidence, rationale=result.rationale)
+        if result.label is not None
+        else None
+    )
+    severity = score_claim(
+        category=Category.MECHANISTIC,
+        label=result.label,
+        confidence=result.confidence,
+        citation_checks=[],
+        retrieval_mode=result.retrieval_mode,
+        claim_text=claim.text,
+        config=config,
+    )
+    return claim.model_copy(
+        update={
+            "cited_ids": [],
+            "citation_checks": [],
+            "retrieval_mode": result.retrieval_mode,
+            "verdict": verdict,
+            "evidence": result.evidence,
+            "category": Category.MECHANISTIC,
+            "diagnostic": severity.diagnostic,
+            "traffic_light": severity.traffic_light,
+            "auto_pass_blocked": severity.auto_pass_blocked,
+            "auto_passed": severity.auto_passed,
+            "routed_to_review": severity.routed_to_review,
+            "effective_verdict": verdict,
+        }
+    )
+
+
 def run_pipeline(
     memo: str,
     *,
@@ -111,6 +159,7 @@ def run_pipeline(
     job_id: str = "job",
     created_at: str | None = None,
     on_progress: ProgressFn | None = None,
+    mode: VerificationMode = VerificationMode.LITERATURE,
 ) -> Report:
     config = config or Config()
     created_at = created_at or _now_iso()
@@ -119,39 +168,88 @@ def run_pipeline(
         if on_progress is not None:
             on_progress(stage, done, total)
 
+    genomic = mode is VerificationMode.GENOMIC
+
     progress("decompose", 0, 1)
-    decomposed = decompose(memo, llm, config)
-    index = build_reference_index(memo)
+    if genomic:
+        # Genomic mode is fully deterministic: split the body into sentence-claims directly rather
+        # than through the LLM decomposer, whose drug-discovery framing drops evolutionary-genomics
+        # statements. No model, no variance - every sentence becomes a checkable claim.
+        claims_in = _split_genomic_claims(memo)
+        unclaimed: list[SourceSpan] = []
+        index = {}
+    else:
+        decomposed = decompose(memo, llm, config)
+        claims_in = decomposed.claims
+        unclaimed = decomposed.unclaimed_spans
+        index = build_reference_index(memo)
     cache: ResolutionCache = {}
-    total = len(decomposed.claims)
+    total = len(claims_in)
     progress("decompose", 1, 1)
 
     final_claims: list[Claim] = []
-    for i, claim in enumerate(decomposed.claims):
-        resolved = resolve_citations(claim.text, index)
-        final_claims.append(
-            _process_claim(
-                claim,
-                resolved,
-                llm=llm,
-                metadata_client=metadata_client,
-                retrieval_client=retrieval_client,
-                config=config,
-                cache=cache,
+    for i, claim in enumerate(claims_in):
+        if genomic:
+            final_claims.append(_process_genomic_claim(claim, config=config))
+        else:
+            resolved = resolve_citations(claim.text, index)
+            final_claims.append(
+                _process_claim(
+                    claim,
+                    resolved,
+                    llm=llm,
+                    metadata_client=metadata_client,
+                    retrieval_client=retrieval_client,
+                    config=config,
+                    cache=cache,
+                )
             )
-        )
         progress("verify", i + 1, total)
 
+    model_versions = (
+        {"genomic_reference": "gladstone-har-zoonomia"}
+        if genomic
+        else {"judge": config.judge_model}
+    )
     return assemble_report(
         report_id=report_id,
         job_id=job_id,
         memo_hash=hashlib.sha256(memo.encode("utf-8")).hexdigest(),
         claims=final_claims,
-        unclaimed_spans=decomposed.unclaimed_spans,
-        model_versions={"judge": config.judge_model},
+        unclaimed_spans=unclaimed,
+        model_versions=model_versions,
         rubric_version="1",
         created_at=created_at,
     )
+
+
+def _split_genomic_claims(memo: str) -> list[Claim]:
+    """Deterministically split a genomic memo body into one claim per sentence, with exact spans.
+
+    Sentences end at . ? or ! (or a line break); the reference section is stripped first. Verbatim
+    text and offsets are preserved so a claim always locates back to the memo.
+    """
+    body, _ = split_reference_section(memo)
+    claims: list[Claim] = []
+    for piece in re.finditer(r"[^.?!\n]*[.?!]|[^.?!\n]*\S", body):
+        raw = piece.group(0)
+        stripped = raw.strip()
+        if not stripped:
+            continue
+        lead = len(raw) - len(raw.lstrip())
+        start = piece.start() + lead
+        ordinal = len(claims)
+        claims.append(
+            Claim(
+                id=f"c{ordinal + 1}",
+                ordinal=ordinal,
+                text=stripped,
+                source_span=SourceSpan(start=start, end=start + len(stripped)),
+                cited_ids=[],
+                attribution=None,
+            )
+        )
+    return claims
 
 
 def verify_claim(
