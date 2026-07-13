@@ -1,0 +1,26 @@
+[project]
+name = "litmuz-worker"
+version = "0.0.0"
+description = "Litmuz async worker: an SQS consumer that runs the verification pipeline."
+requires-python = ">=3.11"
+dependencies = [
+    "litmuz-core",
+    "litmuz-store",
+    "litmuz-service",
+    "psycopg[binary]>=3.1",
+    "boto3>=1.34",
+    # The production judge; core imports it lazily inside AnthropicClient.
+    "anthropic>=0.40",
+]
+
+[tool.uv.sources]
+litmuz-core = { workspace = true }
+litmuz-store = { workspace = true }
+litmuz-service = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/litmuz_worker"]

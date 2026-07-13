@@ -1,0 +1,1448 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* White base. */
+  --bg: 0 0% 100%;
+  --bg-subtle: 160 20% 98%;
+  --ink: 200 12% 12%;
+  --ink-soft: 200 8% 32%;
+  --ink-mute: 200 6% 48%;
+  --rule: 200 12% 90%;
+
+  /* Deep Emerald #00674F = hsl(166 100% 20.2%) exactly. Brand structure/actions only. */
+  --accent: 166 100% 20.2%;
+  --accent-soft: 166 40% 94%;
+
+  /* Verdict status. Kept visually distinct from the brand accent: the pass green (--success)
+     is a lighter, less saturated green than the deep emerald brand colour. */
+  --success: 145 45% 42%;
+  --warning: 38 92% 46%;
+  --danger: 0 68% 48%;
+}
+
+html,
+body {
+  background-color: hsl(var(--bg));
+  color: hsl(var(--ink));
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.55;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.shell {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 0;
+  min-height: calc(100vh - 3px);
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+}
+
+/* Reading-width wrapper for the long-form and single-column pages. */
+.narrow {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+.brand {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: hsl(var(--accent));
+}
+
+/* A hairline brand bar anchors the emerald across the whole product, not just the buttons. */
+.brandbar {
+  height: 3px;
+  background: hsl(var(--accent));
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  border-bottom: 1px solid hsl(var(--rule));
+  padding: 0.4rem 0 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.nav-mark {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-right: auto;
+}
+
+.nav-link {
+  position: relative;
+  color: hsl(var(--ink-soft));
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding-bottom: 0.9rem;
+  margin-bottom: -0.9rem; /* let the active underline sit on the nav rule */
+  transition: color 0.12s ease;
+}
+
+.nav-link:hover {
+  color: hsl(var(--ink));
+}
+
+.nav-link-active {
+  color: hsl(var(--accent));
+  font-weight: 600;
+}
+
+.nav-link-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: hsl(var(--accent));
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Account menu */
+.account {
+  position: relative;
+}
+
+.account-avatar {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  border: 1px solid hsl(var(--accent) / 0.25);
+  background: hsl(var(--accent-soft));
+  color: hsl(var(--accent));
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-avatar:hover {
+  border-color: hsl(var(--accent) / 0.5);
+}
+
+.account-pop {
+  position: absolute;
+  right: 0;
+  top: 2.4rem;
+  min-width: 15rem;
+  background: hsl(var(--bg));
+  border: 1px solid hsl(var(--rule));
+  border-radius: 6px;
+  box-shadow: 0 8px 28px hsl(200 12% 12% / 0.14);
+  padding: 0.4rem;
+  z-index: 30;
+}
+
+.account-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.6rem 0.65rem;
+  border-bottom: 1px solid hsl(var(--rule));
+  margin-bottom: 0.3rem;
+}
+
+.account-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--ink-mute));
+}
+
+.account-email {
+  font-size: 0.9rem;
+  color: hsl(var(--ink));
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: hsl(var(--ink));
+  cursor: pointer;
+}
+
+.account-item:hover {
+  background: hsl(var(--bg-subtle));
+}
+
+/* A quieter, outlined action for secondary nav actions like Sign in. */
+.btn-ghost {
+  background: none;
+  border: 1px solid hsl(var(--accent) / 0.4);
+  color: hsl(var(--accent));
+  border-radius: 3px;
+  padding: 0.35rem 0.85rem;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.btn-ghost:hover {
+  background: hsl(var(--accent-soft));
+  border-color: hsl(var(--accent));
+}
+
+/* --- Login gate --- */
+.auth-wrap {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 24rem;
+  border: 1px solid hsl(var(--rule));
+  border-radius: 4px;
+  padding: 2rem;
+  background: hsl(var(--bg));
+  box-shadow: 0 1px 2px hsl(200 12% 12% / 0.04);
+}
+
+.auth-card h1 {
+  font-size: 1.4rem;
+  margin-top: 0.5rem;
+}
+
+.auth-lede {
+  margin-bottom: 1.25rem;
+}
+
+.auth-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsl(var(--ink-soft));
+  margin-bottom: 0.35rem;
+}
+
+.auth-input {
+  width: 100%;
+  border: 1px solid hsl(var(--rule));
+  border-radius: 2px;
+  padding: 0.6rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: hsl(var(--accent));
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.12);
+}
+
+.auth-code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  text-align: center;
+  letter-spacing: 0.4em;
+  font-size: 1.1rem;
+}
+
+.auth-submit {
+  width: 100%;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.auth-alert {
+  margin-top: 0.85rem;
+  font-size: 0.85rem;
+  color: hsl(var(--danger));
+  background: hsl(var(--danger) / 0.08);
+  border: 1px solid hsl(var(--danger) / 0.25);
+  border-radius: 2px;
+  padding: 0.5rem 0.65rem;
+}
+
+.auth-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.auth-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  color: hsl(var(--accent));
+}
+
+.auth-link:disabled {
+  color: hsl(var(--ink-mute));
+  cursor: default;
+}
+
+.auth-legal {
+  font-size: 0.8rem;
+  text-align: center;
+  max-width: 24rem;
+}
+
+/* --- Modal --- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: hsl(200 12% 12% / 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 50;
+}
+
+.modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 25rem;
+  background: hsl(var(--bg));
+  border: 1px solid hsl(var(--rule));
+  border-radius: 6px;
+  padding: 2rem;
+  box-shadow: 0 10px 40px hsl(200 12% 12% / 0.18);
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.8rem;
+  background: none;
+  border: 0;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: hsl(var(--ink-mute));
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: hsl(var(--ink));
+}
+
+/* --- Usage + plan --- */
+.usage-pill {
+  font-size: 0.8rem;
+  color: hsl(var(--accent));
+  background: hsl(var(--accent-soft));
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.plan {
+  border: 1px solid hsl(var(--rule));
+  border-radius: 4px;
+  padding: 1rem 1.1rem;
+  margin: 1.25rem 0;
+  background: hsl(var(--bg-subtle));
+}
+
+.plan-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.plan-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.plan-price {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.85rem;
+  color: hsl(var(--accent));
+}
+
+.plan-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.plan-list li {
+  font-size: 0.88rem;
+  color: hsl(var(--ink-soft));
+  padding-left: 1.1rem;
+  position: relative;
+}
+
+.plan-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: hsl(var(--accent));
+  font-weight: 700;
+}
+
+.plan-later {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+/* Primary action uses the brand accent, never a verdict colour. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: hsl(var(--accent));
+  color: white;
+  border: 0;
+  border-radius: 2px;
+  padding: 0.55rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+textarea {
+  width: 100%;
+  min-height: 13rem;
+  border: 1px solid hsl(var(--rule));
+  border-radius: 3px;
+  padding: 0.85rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: hsl(var(--accent));
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.12);
+}
+
+.lede {
+  max-width: 40rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.field {
+  margin-top: 0.5rem;
+}
+
+.field-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+}
+
+.field-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsl(var(--ink-soft));
+}
+
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.85rem;
+}
+
+.byte-count {
+  font-size: 0.8rem;
+  color: hsl(var(--ink-mute));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.byte-over {
+  color: hsl(var(--danger));
+}
+
+.steps-hint {
+  list-style: none;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid hsl(var(--rule));
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.steps-hint li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: hsl(var(--ink-soft));
+}
+
+.steps-num {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: hsl(var(--accent-soft));
+  color: hsl(var(--accent));
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Verdict badge. The colour is one of three distinct status tokens; a matching icon and a
+   literal label always accompany it. The success token and check icon are green-only. */
+.verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 2px;
+}
+
+.verdict-success {
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.12);
+}
+
+.verdict-warning {
+  color: hsl(38 92% 34%);
+  background: hsl(var(--warning) / 0.14);
+}
+
+.verdict-danger {
+  color: hsl(var(--danger));
+  background: hsl(var(--danger) / 0.12);
+}
+
+.claim-card {
+  border: 1px solid hsl(var(--rule));
+  border-left-width: 3px;
+  border-radius: 2px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.claim-success {
+  border-left-color: hsl(var(--success));
+}
+
+.claim-warning {
+  border-left-color: hsl(var(--warning));
+}
+
+.claim-danger {
+  border-left-color: hsl(var(--danger));
+}
+
+.claim-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.claim-category,
+.claim-routed {
+  font-size: 0.75rem;
+  color: hsl(var(--ink-mute));
+}
+
+.claim-routed {
+  color: hsl(38 92% 34%);
+}
+
+.claim-text {
+  font-size: 1rem;
+}
+
+.claim-why {
+  font-size: 0.85rem;
+  color: hsl(var(--ink-soft));
+  margin-top: 0.25rem;
+}
+
+.claim-evidence {
+  margin-top: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid hsl(var(--rule));
+  font-size: 0.85rem;
+  color: hsl(var(--ink-soft));
+}
+
+.summary-bar {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: hsl(var(--ink-soft));
+  margin-bottom: 1rem;
+}
+
+.muted {
+  color: hsl(var(--ink-mute));
+  font-size: 0.9rem;
+}
+
+/* Methodology / long-form content */
+.prose h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 2.25rem 0 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid hsl(var(--rule));
+}
+
+.prose p {
+  color: hsl(var(--ink-soft));
+  margin-bottom: 0.75rem;
+  max-width: 42rem;
+}
+
+.method-steps {
+  list-style: none;
+  counter-reset: method;
+  padding: 0;
+  margin: 0;
+}
+
+.method-steps > li {
+  counter-increment: method;
+  position: relative;
+  padding: 0 0 1.4rem 3rem;
+}
+
+.method-steps > li::before {
+  content: counter(method);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: hsl(var(--accent-soft));
+  color: hsl(var(--accent));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.method-steps h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.method-verdicts {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0.75rem 0;
+}
+
+.method-verdicts li {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0.9rem;
+  align-items: start;
+  font-size: 0.9rem;
+  color: hsl(var(--ink-soft));
+}
+
+.method-verdicts .verdict-badge {
+  justify-self: start;
+}
+
+.method-principles {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0.75rem 0;
+}
+
+.method-principles li {
+  font-size: 0.9rem;
+  color: hsl(var(--ink-soft));
+  padding-left: 1rem;
+  border-left: 2px solid hsl(var(--accent) / 0.35);
+}
+
+/* Progress stepper */
+.steps {
+  list-style: none;
+  margin: 1.5rem 0 2rem;
+  padding: 0;
+}
+
+.step {
+  display: flex;
+  gap: 0.9rem;
+  padding-bottom: 1.4rem;
+  position: relative;
+}
+
+/* The connecting rail between dots. */
+.step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 0.7rem;
+  top: 1.5rem;
+  bottom: 0;
+  width: 2px;
+  background: hsl(var(--rule));
+}
+
+.step-done:not(:last-child)::before {
+  background: hsl(var(--accent) / 0.35);
+}
+
+.step-dot {
+  flex: none;
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  border: 2px solid hsl(var(--rule));
+  background: hsl(var(--bg));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  z-index: 1;
+}
+
+.step-done .step-dot {
+  background: hsl(var(--accent));
+  border-color: hsl(var(--accent));
+}
+
+.step-active .step-dot {
+  border-color: hsl(var(--accent));
+  box-shadow: 0 0 0 4px hsl(var(--accent) / 0.14);
+  animation: step-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes step-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px hsl(var(--accent) / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 5px hsl(var(--accent) / 0.2);
+  }
+}
+
+.step-title {
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: hsl(var(--ink-mute));
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.step-active .step-title,
+.step-done .step-title {
+  color: hsl(var(--ink));
+}
+
+.step-count {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  color: hsl(var(--accent));
+  background: hsl(var(--accent-soft));
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.step-detail {
+  font-size: 0.88rem;
+  color: hsl(var(--ink-soft));
+  margin-top: 0.2rem;
+}
+
+.step-pending .step-detail {
+  color: hsl(var(--ink-mute));
+}
+
+.step-subs {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.step-subs li {
+  font-size: 0.85rem;
+  color: hsl(var(--ink-soft));
+  padding-left: 1rem;
+  position: relative;
+}
+
+.step-subs li::before {
+  content: '';
+  position: absolute;
+  left: 0.1rem;
+  top: 0.55rem;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: hsl(var(--accent) / 0.55);
+}
+
+/* ============================ Studio ============================ */
+.studio {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: 60vh;
+}
+
+.studio-main {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0 3rem;
+  max-width: 42rem;
+}
+
+/* Sessions rail (left, collapsible) */
+.studio-rail {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  width: 16rem;
+  border-right: 1px solid hsl(var(--rule));
+  margin-right: 1.75rem;
+  padding-right: 0.5rem;
+}
+
+.rail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 1.9rem;
+  margin-bottom: 0.85rem;
+}
+
+.rail-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: hsl(var(--ink-mute));
+}
+
+/* A quiet, square icon button used for the rail collapse/expand affordances. */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: none;
+  color: hsl(var(--ink-mute));
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.icon-btn:hover {
+  background: hsl(var(--accent-soft));
+  border-color: hsl(var(--accent) / 0.35);
+  color: hsl(var(--accent));
+}
+
+.icon-btn:focus-visible {
+  outline: none;
+  border-color: hsl(var(--accent));
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.15);
+}
+
+/* Collapsed state: the expand button stands alone where the rail used to be. */
+.rail-expand {
+  flex: none;
+  align-self: flex-start;
+  margin-right: 1.25rem;
+}
+
+.sessions {
+  width: 100%;
+  padding-top: 0.25rem;
+}
+
+.sessions-new {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.sessions-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: hsl(var(--ink-mute));
+  margin-bottom: 0.5rem;
+}
+
+.sessions-empty {
+  font-size: 0.85rem;
+}
+
+.sessions-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 5px;
+  padding: 0.45rem 0.5rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: hsl(var(--ink-soft));
+  cursor: pointer;
+}
+
+.session-item:hover {
+  background: hsl(var(--bg-subtle));
+}
+
+.session-active {
+  background: hsl(var(--accent-soft));
+  color: hsl(var(--accent));
+}
+
+.session-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+}
+
+.dot-done {
+  background: hsl(var(--success));
+}
+.dot-run {
+  background: hsl(var(--warning));
+}
+.dot-fail {
+  background: hsl(var(--danger));
+}
+
+.session-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Right canvas (resizable, collapsible) */
+.canvas-resizer {
+  flex: none;
+  width: 1.5rem;
+  cursor: col-resize;
+  position: relative;
+}
+
+.canvas-resizer::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: hsl(var(--rule));
+}
+
+.canvas-resizer:hover::before {
+  background: hsl(var(--accent) / 0.5);
+  width: 2px;
+}
+
+.studio-canvas {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid hsl(var(--rule));
+  border-radius: 8px;
+  background: hsl(var(--bg));
+  overflow: hidden;
+  align-self: flex-start;
+  max-height: calc(100vh - 8rem);
+  position: sticky;
+  top: 1.5rem;
+}
+
+.canvas-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid hsl(var(--rule));
+  background: hsl(var(--bg-subtle));
+}
+
+.canvas-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: hsl(var(--ink-mute));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.canvas-close {
+  background: none;
+  border: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: hsl(var(--ink-mute));
+  cursor: pointer;
+}
+
+.canvas-close:hover {
+  color: hsl(var(--ink));
+}
+
+.canvas-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.panel-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0.25rem 0 0.5rem;
+}
+
+/* Report summary tallies */
+.report-count strong {
+  font-weight: 700;
+}
+
+.report-tally {
+  font-size: 0.8rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.tally-green {
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.12);
+}
+.tally-yellow {
+  color: hsl(38 92% 34%);
+  background: hsl(var(--warning) / 0.14);
+}
+.tally-red {
+  color: hsl(var(--danger));
+  background: hsl(var(--danger) / 0.12);
+}
+
+.report-export {
+  margin-left: auto;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+/* ============================ Footer ============================ */
+.footer {
+  border-top: 1px solid hsl(var(--rule));
+  margin-top: 2rem;
+  padding: 2rem 0 2.5rem;
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.footer-brand {
+  max-width: 26rem;
+}
+
+.footer-tag {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.footer-links a {
+  color: hsl(var(--ink-soft));
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.footer-links a:hover {
+  color: hsl(var(--accent));
+}
+
+.footer-legal {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+}
+
+/* ============================ Contact ============================ */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.contact-card {
+  border: 1px solid hsl(var(--rule));
+  border-radius: 6px;
+  padding: 1.1rem 1.2rem;
+}
+
+.contact-card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.4rem;
+  padding: 0;
+  border: 0;
+}
+
+.contact-card p {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.contact-card a {
+  color: hsl(var(--accent));
+}
+
+.contact-person {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid hsl(var(--rule));
+}
+
+.contact-name {
+  font-weight: 600;
+  margin: 0.25rem 0 0.6rem;
+}
+
+.contact-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+}
+
+.contact-socials a {
+  color: hsl(var(--accent));
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.contact-socials a:hover {
+  text-decoration: underline;
+}
+
+/* Composer lock while a verification is running. */
+.field textarea.is-locked {
+  background: hsl(var(--bg-subtle));
+  color: hsl(var(--ink-mute));
+  cursor: not-allowed;
+}
+
+.composer-lock {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: hsl(var(--accent));
+  background: hsl(var(--accent-soft));
+  border: 1px solid hsl(var(--accent) / 0.25);
+  border-radius: 4px;
+  padding: 0.5rem 0.7rem;
+}
+
+/* Studio stacks on narrow screens: the canvas becomes a full-width overlay. */
+@media (max-width: 60rem) {
+  .studio-rail {
+    display: none;
+  }
+  .rail-expand {
+    display: none;
+  }
+  .canvas-resizer {
+    display: none;
+  }
+  .studio {
+    flex-direction: column;
+  }
+  .studio-canvas {
+    width: 100% !important;
+    position: static;
+    max-height: none;
+    margin-top: 1.5rem;
+  }
+}
+
+/* ============================ Human review ============================ */
+
+/* A distinct, muted amber pill so a reviewed claim reads differently from the
+   pipeline's own "Routed to review" flag it replaces. */
+.claim-reviewed {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--accent));
+  background: hsl(var(--accent-soft));
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
+.claim-audit {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 4px;
+  background: hsl(var(--bg-subtle));
+  border: 1px solid hsl(var(--rule));
+}
+
+.claim-audit-head {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.claim-audit-meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+}
+
+.claim-audit-rationale {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.claim-audit-original {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+}
+
+/* Report header: the review-queue toggle sits between the tallies and Export CSV, both
+   pushed to the far right (report-export already carries its own margin-left: auto). */
+.report-review-toggle {
+  margin-left: auto;
+  margin-right: 0.5rem;
+}
+
+.panel-subtitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: hsl(var(--ink-soft));
+  margin: 0 0 0.6rem;
+}
+
+.report-review-section {
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid hsl(var(--accent) / 0.3);
+  border-radius: 4px;
+  background: hsl(var(--accent-soft));
+}
+
+.review-panel-empty {
+  margin: 0;
+}
+
+.review-panel-item + .review-panel-item {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid hsl(var(--rule));
+}
+
+/* The reviewer decision form itself: a claim summary, a row of decision pills, and the
+   conditional rationale/confidence fields that appear once an override is chosen. */
+.review-form {
+  background: hsl(var(--bg));
+  border: 1px solid hsl(var(--rule));
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+}
+
+.review-form-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.review-diagnostic {
+  font-size: 0.75rem;
+}
+
+.review-decisions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.review-decision {
+  background: none;
+  border: 1px solid hsl(var(--rule));
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: hsl(var(--ink-soft));
+  cursor: pointer;
+}
+
+.review-decision:hover {
+  border-color: hsl(var(--accent));
+  color: hsl(var(--accent));
+}
+
+.review-decision-active {
+  background: hsl(var(--accent));
+  border-color: hsl(var(--accent));
+  color: hsl(var(--bg));
+}
+
+.review-fields {
+  margin-top: 0.75rem;
+}
+
+.review-rationale {
+  min-height: 4.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.review-confidence {
+  width: 6rem;
+  border: 1px solid hsl(var(--rule));
+  border-radius: 3px;
+  padding: 0.4rem 0.55rem;
+  font: inherit;
+}
+
+.review-submit {
+  margin-top: 0.75rem;
+}
+
+.review-note-toggle {
+  display: inline-block;
+  margin-top: 0.75rem;
+}
+
+.review-note-open {
+  margin-top: 0.75rem;
+}
+
+.review-note-text {
+  min-height: 3.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.review-note-actions {
+  display: flex;
+  gap: 1rem;
+}

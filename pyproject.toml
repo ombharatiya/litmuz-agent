@@ -1,0 +1,50 @@
+[project]
+name = "litmuz-workspace"
+version = "0"
+description = "Litmuz monorepo workspace root (dev environment only)."
+requires-python = ">=3.11"
+dependencies = ["litmuz-core", "litmuz-store", "litmuz-service", "litmuz-api", "litmuz-worker", "litmuz-mcp"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+litmuz-core = { workspace = true }
+litmuz-store = { workspace = true }
+litmuz-service = { workspace = true }
+litmuz-api = { workspace = true }
+litmuz-worker = { workspace = true }
+litmuz-mcp = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/litmuz_core", "packages/litmuz_store", "packages/litmuz_service", "apps/api", "apps/worker", "apps/mcp"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "respx>=0.21",
+    "ruff>=0.6",
+    "jsonschema>=4.20",
+    # For the local live runner (apps/cli). The core package never imports it; the
+    # AnthropicClient loads it lazily only when a real model call is made.
+    "anthropic>=0.40",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["packages/litmuz_core/src", "packages/litmuz_store/src", "packages/litmuz_service/src", "apps/api/src", "apps/worker/src", "apps/mcp/src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+# Keep the explicit `(str, Enum)` form: unambiguous for pydantic and readers, and its
+# repr/str semantics differ from StrEnum. This is a deliberate style choice.
+ignore = ["UP042"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["litmuz_core", "litmuz_store", "litmuz_service", "litmuz_api", "litmuz_worker", "litmuz_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["packages/litmuz_core/tests", "packages/litmuz_store/tests", "packages/litmuz_service/tests", "apps/api/tests", "apps/worker/tests", "apps/mcp/tests"]
+addopts = "-q"

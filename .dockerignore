@@ -1,0 +1,21 @@
+# Keep the build context small and reproducible.
+.git
+.github
+.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+**/.terraform
+infra
+docs
+fixtures
+apps/web
+apps/cli
+**/node_modules
+**/.next
+**/out
+**/tests
+*.md
+**/*.md
+.DS_Store

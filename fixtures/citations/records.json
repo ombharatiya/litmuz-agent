@@ -1,0 +1,58 @@
+{
+  "_comment": "Deterministic citation-check corpus. Keys are normalized identifier keys (id_type:value). outcome ∈ found|absent|unresolved|transient. No network is used in unit tests; these drive the FakeClient.",
+  "records": [
+    {
+      "key": "pmid:12345",
+      "outcome": "found",
+      "title": "TP53 regulates apoptosis in colorectal carcinoma cell lines",
+      "surnames": ["Smith", "Doe", "Nguyen"],
+      "epub_year": 2019,
+      "print_year": 2020,
+      "source_status": "active"
+    },
+    {
+      "key": "pmid:99999999",
+      "outcome": "absent"
+    },
+    {
+      "key": "pmid:22222",
+      "outcome": "found",
+      "title": "Retracted: aberrant signalling in model organisms",
+      "surnames": ["Brown"],
+      "print_year": 2018,
+      "source_status": "retracted"
+    },
+    {
+      "key": "pmid:44444",
+      "outcome": "found",
+      "title": "An expression of concern was issued for this work",
+      "surnames": ["Ivanova"],
+      "print_year": 2016,
+      "source_status": "concern"
+    },
+    {
+      "key": "doi:10.1000/xyz123",
+      "outcome": "found",
+      "title": "Kinase inhibition and downstream pathway effects",
+      "surnames": ["Nguyen"],
+      "print_year": 2021,
+      "source_status": "active"
+    },
+    {
+      "key": "doi:10.5555/preprint.2026",
+      "outcome": "unresolved"
+    },
+    {
+      "key": "pmcid:PMC7654321",
+      "outcome": "found",
+      "title": "Open access full text on receptor binding",
+      "surnames": ["Garcia"],
+      "print_year": 2017,
+      "source_status": "active"
+    },
+    {
+      "key": "pmid:33333",
+      "outcome": "transient"
+    }
+  ]
+}
