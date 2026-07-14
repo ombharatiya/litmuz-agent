@@ -72,6 +72,14 @@ memo
                           citation check, category, and whether a human needs to look. Persisted
                           append-only.
 ```
+### Verification Flow
+
+<img width="1512" height="982" alt="Screenshot 2026-07-14 at 6 27 34 AM" src="https://github.com/user-attachments/assets/4060ff1f-8190-4701-b759-56ea2c07fb5c" />
+
+### Human Review
+
+<img width="1512" height="982" alt="Screenshot 2026-07-14 at 6 27 39 AM" src="https://github.com/user-attachments/assets/6ee2f567-a772-4426-994a-2e6a04e276a6" />
+
 
 ### The two guarantees
 
